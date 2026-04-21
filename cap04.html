@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Ferruccio Baggiolini — Cap. 4 — La Rosandra</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:Georgia,serif; background:#1a1a1a; }
+#header {
+  background:#2c1810; padding:10px 14px;
+  border-bottom:2px solid #8B6914;
+  position:fixed; top:0; left:0; right:0; z-index:1000;
+}
+#header h1 { font-size:13px; color:#d4a843; font-weight:bold; }
+#header p { font-size:10px; color:#908880; margin-top:2px; }
+#map { position:fixed; top:52px; left:0; right:0; bottom:0; }
+#back {
+  position:fixed; bottom:16px; right:16px; z-index:1000;
+  background:#2c1810; border:1px solid #8B6914; color:#d4a843;
+  padding:8px 14px; border-radius:6px; font-family:Georgia;
+  font-size:12px; text-decoration:none;
+  box-shadow:0 2px 8px rgba(0,0,0,0.5);
+}
+</style>
+</head>
+<body>
+<div id="header">
+  <h1>Ferruccio Baggiolini — Cap. 4 — La Rosandra</h1>
+  <p>I giorni più tristi della prigionia arresa</p>
+</div>
+<div id="map"></div>
+<a href="index.html" id="back">← Mappa completa</a>
+<script>
+const esriTopo = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',{maxZoom:18,attribution:'Esri'});
+const map = L.map('map',{center:[43.5,14.0],zoom:6,layers:[esriTopo]});
+
+const TR  = {color:'#8B1A1A',weight:3,opacity:0.9};
+const NAV = {color:'#1A3A8B',weight:3,opacity:0.9};
+const MAR = {color:'#1E6B1E',weight:2.5,opacity:0.9,dashArray:'8 6'};
+const OSP = {color:'#8B6914',weight:2.5,opacity:0.85,dashArray:'5 4'};
+const RIT = {color:'#1E6B1E',weight:3,opacity:0.9};
+const CAT = {color:'#6B0000',weight:2.5,opacity:0.9,dashArray:'8 5'};
+
+function pt(lat,lon,label,color,dir,off){
+  dir=dir||'top'; off=off||[0,-8];
+  return L.circleMarker([lat,lon],{radius:7,fillColor:'white',color:color,weight:2.5,fillOpacity:1})
+    .bindTooltip(label,{permanent:true,direction:dir,className:'tt',offset:off})
+    .bindPopup('<b style="font-family:Georgia">'+label.replace(/\n/g,'<br>')+'</b>',{closeButton:false});
+}
+function ptStar(lat,lon,label,color){
+  return L.circleMarker([lat,lon],{radius:10,fillColor:color,color:'white',weight:2,fillOpacity:1})
+    .bindTooltip(label,{permanent:true,direction:'top',className:'tt',offset:[0,-13]})
+    .bindPopup('<b style="font-family:Georgia">'+label.replace(/\n/g,'<br>')+'</b>',{closeButton:false});
+}
+function km(lat,lon,text,color){
+  return L.marker([lat,lon],{
+    icon:L.divIcon({
+      className:'',
+      html:'<div style="display:inline-block;transform:translate(-50%,-50%);background:#ffffff;border:2.5px solid '+color+';border-radius:5px;padding:4px 10px;font-family:Georgia,serif;font-size:12px;color:'+color+';font-style:italic;font-weight:bold;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.5);">'+text+'</div>',
+      iconSize:[0,0],iconAnchor:[0,0]
+    }),
+    interactive:false,zIndexOffset:500
+  });
+}
+
+const LY = {
+
+// ── CAP 1 ─────────────────────────────────────────────────────
+c01: L.layerGroup([
+  pt(45.998,8.742,'Voldomino\n(nascita 5/10/1921)','#555','right',[10,0]),
+]),
+
+// ── CAP 2 — Voldomino → Aosta ─────────────────────────────────
+c02: L.layerGroup([
+  // Ferrovia: Luino → Varese → Milano → Torino → Aosta
+  L.polyline([
+    [45.998,8.742], // Voldomino/Luino
+    [45.830,8.745], // Varese
+    [45.464,9.188], // Milano
+    [45.072,7.682], // Torino
+    [45.737,7.315], // Aosta
+  ],TR),
+  pt(45.998,8.742,'Voldomino','#8B1A1A','left',[-10,0]),
+  pt(45.737,7.315,'Aosta\nScuola Alpini\n6/1/1941','#8B1A1A','left',[-10,0]),
+  km(45.3,8.0,'~340 km','#8B1A1A'),
+]),
+
+// ── CAP 3 — Aosta → Fondotoce ─────────────────────────────────
+c03: L.layerGroup([
+  L.polyline([
+    [45.737,7.315],
+    [45.072,7.682],
+    [45.464,9.188],
+    [45.446,8.621],
+    [45.942,8.517],
+  ],TR),
+  pt(45.737,7.315,'Aosta','#8B1A1A','left',[-10,0]),
+  pt(45.942,8.517,'Fondotoce — Intra\nCaserma Simonetta\n13/3/1941','#8B1A1A','right',[10,0]),
+  km(45.4,8.3,'~250 km','#8B1A1A'),
+]),
+
+// ── CAP 4a — Fondotoce → Bari (ferrovia tirrenica) ────────────
+c04a: L.layerGroup([
+  L.polyline([
+    [45.942,8.517], // Fondotoce
+    [45.446,8.621], // Novara
+    [45.464,9.188], // Milano
+    [44.413,8.943], // Genova
+    [44.360,8.960], // Genova Brignole
+    [44.313,9.070], // Recco
+    [44.270,9.145], // Camogli
+    [44.248,9.211], // Santa Margherita
+    [44.320,9.325], // Chiavari
+    [44.234,9.523], // Sestri Levante
+    [44.150,9.620], // Deiva Marina
+    [44.103,9.826], // La Spezia
+    [43.870,10.250],// Viareggio
+    [43.720,10.408],// Pisa
+    [43.548,10.309],// Livorno
+    [42.730,11.108],// Grosseto
+    [42.341,11.796],// Civitavecchia
+    [41.893,12.483],// Roma Termini
+    [41.076,14.327],// Caserta
+    [40.852,14.268],// Napoli
+    [40.900,14.780],// Nola
+    [41.130,14.780],// Benevento
+    [41.460,15.550],// Foggia
+    [41.125,16.867],// Bari
+  ],TR),
+  pt(45.942,8.517,'Fondotoce','#8B1A1A','left',[-10,0]),
+  pt(41.125,16.867,'Bari\n19/1/1942','#8B1A1A','right',[10,0]),
+  km(42.3,11.5,'~1080 km','#8B1A1A'),
+]),
+
+// ── CAP 4b — Bari → Gravosa (nave) ────────────────────────────
+c04b: L.layerGroup([
+  L.polyline([
+    [41.125,16.867], // Bari
+    [41.500,17.300], // traversata diretta Adriatico
+    [41.900,17.700],
+    [42.200,17.900],
+    [42.648,18.094], // Gravosa/Dubrovnik
+  ],NAV),
+  pt(41.125,16.867,'Bari','#1A3A8B','left',[-10,0]),
+  pt(42.648,18.094,'Gravosa (Dubrovnik)\nsbarco 20/1/1942','#1A3A8B','right',[10,0]),
+  km(41.9,17.6,'~204 km nave','#1A3A8B'),
+]),
+
+// ── CAP 5a — Gravosa → Fiume → Ogulin → Lika ─────────────────
+c05a: L.layerGroup([
+  // Gravosa → Spalato in nave (costa dalmata)
+  L.polyline([
+    [42.648,18.094], // Gravosa/Dubrovnik
+    [43.000,17.500], // lungo costa dalmata
+    [43.500,16.440], // Spalato/Split
+  ],NAV),
+  // Spalato → Fiume → Ogulin → Lika in treno
+  L.polyline([
+    [43.500,16.440], // Spalato
+    [43.700,15.900], // Šibenik
+    [44.118,15.232], // Zadar
+    [44.531,14.464], // Gospić
+    [45.280,14.700], // Ogulin
+    [45.330,14.441], // Fiume
+    [45.280,14.700], // Ogulin (prosegue verso Lika)
+    [44.850,15.300], // Lika
+  ],TR),
+  pt(42.648,18.094,'Gravosa (Dubrovnik)','#1A3A8B','left',[-10,0]),
+  pt(43.500,16.440,'Spalato','#8B1A1A','left',[-10,0]),
+  pt(44.850,15.300,'Lika\noperazioni feb–apr 1942','#8B1A1A','right',[10,0]),
+  km(43.2,17.0,'~80 km nave','#1A3A8B'),
+  km(44.5,15.1,'~350 km treno','#8B1A1A'),
+]),
+
+// ── CAP 5b — Operazioni Lika ──────────────────────────────────
+c05b: L.layerGroup([
+  L.polyline([
+    [44.850,15.300],
+    [44.600,15.500],
+    [44.700,15.700],
+    [44.850,15.800],
+    [44.900,15.400],
+    [44.850,15.300],
+  ],MAR),
+]),
+
+// ── CAP 6a — Treno ospedale Lika → Chiavari ───────────────────
+c06a: L.layerGroup([
+  L.polyline([
+    [44.850,15.300], // Lika
+    [43.500,16.440], // Spalato
+    [43.700,15.900], // Šibenik
+    [44.118,15.232], // Zadar
+    [45.330,14.441], // Fiume/Rijeka
+    [45.640,13.775], // Trieste
+    [45.440,12.320], // Venezia Mestre
+    [45.442,10.992], // Verona
+    [44.700,10.680], // Parma
+    [44.413,8.943],  // Genova
+    [44.360,8.960],  // Genova Brignole
+    [44.313,9.070],  // Recco
+    [44.248,9.211],  // Santa Margherita
+    [44.320,9.325],  // Chiavari
+  ],OSP),
+  pt(44.850,15.300,'Lika','#8B6914','right',[10,0]),
+  pt(44.320,9.325,'Chiavari\nospedale militare\napr–mag 1942','#8B6914','left',[-10,0]),
+  km(44.9,12.5,'~750 km','#8B6914'),
+]),
+
+// ── CAP 6b — Chiavari → Voldomino ─────────────────────────────
+c06b: L.layerGroup([
+  L.polyline([
+    [44.320,9.325],  // Chiavari
+    [44.413,8.943],  // Genova
+    [45.464,9.188],  // Milano
+    [45.446,8.621],  // Novara
+    [45.942,8.517],  // Fondotoce
+    [45.998,8.742],  // Voldomino
+  ],OSP),
+  pt(45.998,8.742,'Voldomino\nconvalescenza\napr–mag 1942','#8B6914','left',[-10,0]),
+  km(45.1,9.0,'~280 km','#8B6914'),
+]),
+
+// ── CAP 7 — Rientro al fronte ─────────────────────────────────
+c07: L.layerGroup([
+  L.polyline([
+    [45.998,8.742],  // Voldomino
+    [45.446,8.621],  // Novara
+    [45.464,9.188],  // Milano
+    [45.442,10.992], // Verona
+    [45.640,13.775], // Trieste
+    [45.700,13.900], // Monfalcone
+    [45.830,13.980], // Gorizia
+    [45.950,14.100], // Nova Gorica
+    [46.059,14.505], // Lubiana
+    [45.800,15.200], // Karlovac
+    [45.280,14.700], // Ogulin
+    [44.850,15.300], // Lika
+  ],TR),
+  pt(45.998,8.742,'Voldomino\\nrientro al fronte 19/5/1942','#8B1A1A','left',[-10,0]),
+  pt(44.850,15.300,'Lika\\nricongiungimento 8/6/1942','#8B1A1A','right',[10,0]),
+  km(45.75,12.0,'~650 km','#8B1A1A'),
+]),
+
+// ── CAP 8a — Lika → Bosnia → Nikšić ──────────────────────────
+c08a: L.layerGroup([
+  L.polyline([
+    [44.850,15.300],
+    [43.500,16.440],
+    [43.343,17.807],
+    [43.656,18.152],
+    [43.850,18.380],
+    [43.200,18.800],
+    [42.833,18.800],
+    [42.773,18.945],
+  ],TR),
+  pt(44.850,15.300,'Lika','#8B1A1A','left',[-10,0]),
+  pt(42.773,18.945,'Nikšić\npresidio 1942–1943','#8B1A1A','right',[10,0]),
+  km(43.4,17.8,'~400 km','#8B1A1A'),
+]),
+
+// ── CAP 8b — Presidio Montenegro ─────────────────────────────
+c08b: L.layerGroup([
+  // Area operativa Montenegro/Sangiaccato
+  L.polyline([
+    [42.773,18.945], // Nikšić
+    [43.140,19.598], // Pljevlja
+    [43.456,19.217], // Bijelo Polje
+    [43.140,19.598], // Pljevlja
+    [42.773,18.945], // Nikšić
+    [42.600,19.100], // verso Bocche
+    [42.773,18.945], // rientro Nikšić
+  ],MAR),
+]),
+
+// ── CAP 9 — Cattura ───────────────────────────────────────────
+c09: L.layerGroup([
+  L.polyline([
+    [42.773,18.945], // Nikšić
+    [42.650,18.750], // verso Bocche di Cattaro
+    [42.580,18.680], // Risan area
+    [42.508,18.694], // Risan
+  ],CAT),
+  ptStar(42.508,18.694,'⚑ Risan\nCattura 9/10/1943','#6B0000'),
+  km(42.65,18.75,'~55 km','#6B0000'),
+]),
+
+// ── CAP 10 — Risan → Meppen ───────────────────────────────────
+c10: L.layerGroup([
+  L.polyline([
+    [42.508,18.694],
+    [42.441,19.260],
+  ],MAR),
+  pt(42.508,18.694,'Risan\ncattura 9/10/1943','#6B0000','left',[-10,0]),
+  // Treno: Podgorica → Prizren → Skopje → Belgrado → Germania
+  L.polyline([
+    [42.441,19.260], // Podgorica
+    [42.213,20.741], // Prizren
+    [41.994,21.431], // Skopje
+    [43.320,21.896], // Niš
+    [44.802,20.465], // Belgrado
+    [44.840,20.380], // Zemun
+    [47.497,19.040], // Budapest
+    [48.208,16.373], // Vienna
+    [48.130,16.200], // Vienna W
+    [47.800,15.000], // Linz area
+    [48.137,11.575], // Monaco
+    [48.500,10.500], // Augusta
+    [49.450,11.080], // Norimberga
+    [50.110,8.680],  // Francoforte
+    [51.200,6.800],  // Duisburg area
+    [51.800,7.200],  // Münster area
+    [52.700,7.310],  // Meppen
+  ],TR),
+  pt(42.441,19.260,'Podgorica','#1E6B1E','right',[10,0]),
+  pt(44.840,20.380,'Zemun (Belgrado)\nraccolta prigionieri','#8B1A1A','top',[0,-10]),
+  pt(52.700,7.310,'Meppen\nStalag VI-C\n28/10/1943','#8B1A1A','right',[10,0]),
+  km(46.5,17.0,'~2100 km','#8B1A1A'),
+]),
+
+// ── CAP 11 — Meppen → Dęblin ──────────────────────────────────
+c11: L.layerGroup([
+  L.polyline([
+    [52.700,7.310],
+    [52.375,9.738],  // Hannover
+    [52.521,13.413], // Berlino
+    [52.230,14.530], // Francoforte sull'Oder
+    [52.000,15.500], // Zielona Góra
+    [51.700,16.500], // Kalisz area
+    [51.935,19.423], // Łódź
+    [52.229,21.012], // Varsavia
+    [51.560,21.850], // Dęblin
+  ],TR),
+  pt(52.700,7.310,'Meppen\nStalag VI-C','#8B1A1A','right',[10,0]),
+  pt(51.560,21.850,'Dęblin\nStalag 307\n7/11/1943','#8B1A1A','right',[10,0]),
+  km(52.1,15.0,'~1020 km','#8B1A1A'),
+]),
+
+// ── CAP 12a — Dęblin → Przemyśl ───────────────────────────────
+c12a: L.layerGroup([
+  L.polyline([
+    [51.560,21.850], // Dęblin
+    [51.250,22.570], // Lublin
+    [50.060,22.000], // Rzeszów
+    [49.784,22.768], // Przemyśl
+  ],TR),
+  pt(51.560,21.850,'Dęblin','#8B1A1A','left',[-10,0]),
+  pt(49.784,22.768,'Przemyśl\nStalag 327\n11/1/1944','#8B1A1A','right',[10,0]),
+  km(50.5,22.3,'~208 km','#8B1A1A'),
+]),
+
+// ── CAP 12b — Przemyśl → Küstrin ──────────────────────────────
+c12b: L.layerGroup([
+  L.polyline([
+    [49.784,22.768], // Przemyśl
+    [50.068,19.938], // Cracovia
+    [51.100,17.038], // Wrocław
+    [51.800,15.700], // Zielona Góra
+    [52.230,14.530], // Francoforte sull'Oder
+    [52.590,14.650], // Küstrin/Kostrzyn
+  ],TR),
+  pt(49.784,22.768,'Przemyśl','#8B1A1A','right',[10,0]),
+  pt(52.590,14.650,'Küstrin\nStalag III-C\n15/1/1944','#8B1A1A','top',[0,-10]),
+  km(51.3,18.5,'~666 km','#8B1A1A'),
+]),
+
+// ── CAP 13 — Küstrin → Meseritz ───────────────────────────────
+c13: L.layerGroup([
+  L.polyline([
+    [52.590,14.650], // Küstrin
+    [52.450,15.567], // Meseritz/Międzyrzecz
+  ],TR),
+  pt(52.590,14.650,'Küstrin','#8B1A1A','left',[-10,0]),
+  pt(52.450,15.567,'Meseritz\nRegenwurmlager\n25/8/1944','#8B1A1A','bottom',[0,10]),
+  km(52.52,15.1,'~64 km','#8B1A1A'),
+]),
+
+// ── CAP 14 — Meseritz → Luckenwalde (marcia invernale) ────────
+c14: L.layerGroup([
+  L.polyline([
+    [52.450,15.567], // Meseritz
+    [52.350,15.000],
+    [52.300,14.530], // Francoforte sull'Oder
+    [52.200,14.000],
+    [52.100,13.600],
+    [52.093,13.170], // Luckenwalde
+  ],{color:'#1E6B1E',weight:2.5,opacity:0.9,dashArray:'8 6'}),
+  pt(52.450,15.567,'Meseritz\nRegenwurmlager','#1E6B1E','right',[10,0]),
+  pt(52.093,13.170,'Luckenwalde\nStalag III-A\n11/2/1945','#1E6B1E','left',[-10,0]),
+  km(52.28,14.3,'~169 km\nevacuazione invernale','#1E6B1E'),
+]),
+
+// ── CAP 15 — Luckenwalde → Weißensee ─────────────────────────
+c15: L.layerGroup([
+  L.polyline([
+    [52.093,13.170], // Luckenwalde
+    [52.300,13.200], // verso Berlino
+    [52.450,13.350], // Berlino sud
+    [52.553,13.467], // Weißensee (Berlino NE)
+  ],TR),
+  pt(52.093,13.170,'Luckenwalde','#8B1A1A','left',[-10,0]),
+  pt(52.553,13.467,'Weißensee — Berlino\nGBI Lager 40\n24/2/1945','#8B1A1A','right',[10,0]),
+  km(52.35,13.25,'~55 km','#8B1A1A'),
+]),
+
+// ── CAP 16 — Weißensee → Falkensee + Liberazione ─────────────
+c16: L.layerGroup([
+  L.polyline([
+    [52.553,13.467], // Weißensee
+    [52.530,13.350], // attraverso Berlino
+    [52.540,13.200], // Berlino W
+    [52.547,13.093], // Falkensee
+  ],TR),
+  pt(52.553,13.467,'Weißensee','#8B1A1A','right',[10,0]),
+  pt(52.547,13.093,'Falkensee\nStalag III-D/Z\n6/4/1945','#8B1A1A','left',[-10,0]),
+  ptStar(52.547,13.093,'⭐ LIBERATO\n22 aprile 1945','#d4a843'),
+  km(52.54,13.28,'~26 km','#8B1A1A'),
+]),
+
+// ── CAP 17/18 — Il Ritorno ────────────────────────────────────
+c17: L.layerGroup([
+  L.polyline([
+    [52.547,13.093], // Falkensee
+    [52.250,13.900], // Storkow
+    [52.100,13.500], // verso sud
+    [51.340,12.375], // Lipsia
+    [50.720,12.500], // Chemnitz
+    [49.450,11.080], // Norimberga
+    [48.800,11.500], // Ingolstadt
+    [48.137,11.575], // Monaco
+    [47.993,11.100], // Rosenheim
+    [47.267,11.393], // Innsbruck
+    [46.980,11.330], // Brennero
+    [46.500,11.352], // Bolzano
+    [46.070,11.120], // Trento
+    [45.430,10.985], // Verona/Pescantina
+  ],RIT),
+  L.polyline([
+    [45.430,10.985], // Pescantina
+    [45.464,9.188],  // Milano
+    [45.446,8.621],  // Novara
+    [45.942,8.517],  // Fondotoce
+    [45.998,8.742],  // Voldomino
+  ],RIT),
+  pt(52.250,13.900,'Storkow\n(raccolta)','#1E6B1E','right',[10,0]),
+  pt(45.430,10.985,'Pescantina (Verona)\nCRI — 12/9/1945','#1E6B1E','bottom',[0,10]),
+  ptStar(45.998,8.742,'⭐ Voldomino\nARRIVO 17/9/1945','#1E6B1E'),
+  km(49.5,12.5,'~1200 km','#1E6B1E'),
+]),
+
+};
+
+// Mostra solo i layer di questo capitolo
+const show = ['c04a', 'c04b'];
+show.forEach(name => { if(LY[name]) LY[name].addTo(map); });
+
+const s=document.createElement('style');
+s.textContent='.tt{background:rgba(20,10,5,0.9)!important;border:1px solid #8B6914!important;color:#f0e8d8!important;font-family:Georgia,serif!important;font-size:11px!important;padding:3px 8px!important;border-radius:3px!important;white-space:pre-line!important;box-shadow:0 2px 6px rgba(0,0,0,0.5)!important;}';
+document.head.appendChild(s);
+</script>
+</body>
+</html>
